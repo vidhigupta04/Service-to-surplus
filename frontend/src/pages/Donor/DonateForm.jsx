@@ -14,18 +14,19 @@ export default function DonateForm() {
     location: '',
     image_url: ''
   })
+
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const handleChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value
     }))
   }
 
   const handleImageUpload = (imageUrl) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       image_url: imageUrl
     }))
@@ -36,13 +37,28 @@ export default function DonateForm() {
     setLoading(true)
 
     try {
-      await api.post('/donations', {
-        ...formData,
-        expiry_time: new Date(formData.expiry_time).toISOString()
-      })
+      // Convert expiry time only if valid
+      const expiryISO = formData.expiry_time
+        ? new Date(formData.expiry_time).toISOString()
+        : null
+
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        quantity: formData.quantity,
+        food_type: formData.food_type,
+        expiry_time: expiryISO,
+        location: formData.location,
+        image_url: formData.image_url
+      }
+
+      console.log("Submitting donation:", payload)
+
+      await api.post('/donations', payload)
+
       navigate('/my-donations')
     } catch (error) {
-      console.error('Error creating donation:', error)
+      console.error('Error creating donation:', error.response?.data)
       alert('Failed to create donation. Please try again.')
     } finally {
       setLoading(false)
@@ -60,7 +76,9 @@ export default function DonateForm() {
           Back
         </button>
         <h1 className="text-3xl font-bold text-gray-900">Post Food Donation</h1>
-        <p className="text-gray-600 mt-2">Share your surplus food with NGOs in need</p>
+        <p className="text-gray-600 mt-2">
+          Share your surplus food with NGOs in need
+        </p>
       </div>
 
       <div className="bg-white shadow-lg rounded-lg p-6">
@@ -77,7 +95,7 @@ export default function DonateForm() {
                 required
                 value={formData.title}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                 placeholder="e.g., Fresh Sandwiches, Vegetable Curry"
               />
             </div>
@@ -93,7 +111,7 @@ export default function DonateForm() {
                 required
                 value={formData.quantity}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
                 placeholder="e.g., 50 plates, 10 kg"
               />
             </div>
@@ -107,7 +125,7 @@ export default function DonateForm() {
                 name="food_type"
                 value={formData.food_type}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
               >
                 <option value="vegetarian">Vegetarian</option>
                 <option value="non-vegetarian">Non-Vegetarian</option>
@@ -126,7 +144,7 @@ export default function DonateForm() {
                 required
                 value={formData.expiry_time}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
               />
             </div>
           </div>
@@ -142,7 +160,7 @@ export default function DonateForm() {
               required
               value={formData.location}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
               placeholder="Full address for pickup"
             />
           </div>
@@ -157,7 +175,7 @@ export default function DonateForm() {
               rows={4}
               value={formData.description}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              className="mt-1 block w-full border border-gray-300 rounded-lg px-3 py-2"
               placeholder="Describe the food items, packaging, and any special instructions..."
             />
           </div>
@@ -173,14 +191,14 @@ export default function DonateForm() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-6 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+              className="flex items-center px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
               <Save className="h-4 w-4 mr-2" />
               {loading ? 'Posting...' : 'Post Donation'}

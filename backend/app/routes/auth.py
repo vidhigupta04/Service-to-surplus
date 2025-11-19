@@ -41,10 +41,13 @@ def login():
     user = User.query.filter_by(email=data['email']).first()
     
     if user and user.check_password(data['password']):
-        if not user.is_approved:
-            return jsonify({'message': 'Account pending approval'}), 403
+        # if not user.is_approved:
+        #     return jsonify({'message': 'Account pending approval'}), 403
             
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(
+             identity=str(user.id),          
+             additional_claims={"sub": str(user.id)}  
+        )
         return jsonify({
             'access_token': access_token,
             'user': {
@@ -72,5 +75,5 @@ def get_profile():
         'organization_name': user.organization_name,
         'contact_number': user.contact_number,
         'address': user.address,
-        'is_approved': user.is_approved
+        # 'is_approved': user.is_approved
     })
